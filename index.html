@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      #root{
+        font-family: sans-serif;
+        white-space: nowrap;
+      }
+      .bargraph{
+        display:inline-block;
+        position:absolute;
+        top:0;
+        left:0;
+        height:200px;
+        width:100%;
+      }
+      .bar{
+        left:0%;
+        right:0%;
+        bottom:0;
+        text-align:center;
+        padding: 0 10px 0 10px;
+        font-size: 14pt;
+        color:white;
+      }
+      .graphcol{
+        width: 50px;
+        position:relative;
+        display:inline-block;
+        /*border-right: 1px solid #eee;*/
+        height: 360px;
+        margin-bottom: 20px;
+      }
+      .focus{
+        /*height:100px;*/
+        width:50px;
+        opacity: 0.5;
+        /*pointer-events:none;*/
+      }
+      .container{
+        position:absolute;
+        display:inline-block;
+        width:100%;
+        top: 200px;
+        left:0;
+      }
+      .highlight{
+        position: absolute;
+      }
+      .subtitle{
+        position:absolute;
+        top: 280px;
+        left: 50%;
+        transform:rotate(90deg);
+        transform-origin: 0 50%;
+        color: #bbb;
+      }
+      .keyrow{
+        padding:5px;
+        /*padding-left:40px;*/
+      }
+      .swatch{
+        width: 12px;
+        height: 12px;
+        display: inline-block;
+        margin-right:10px;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="helper v3.js"></script>
+    <script src="data.js"></script>
+    <div id="root"></div>
+    <script>
+      var stringBuilder = ""
+      let labels = [
+                    "New House",
+                    "New Dorm",
+                    "Other Dorms",
+                    "Climate Change"
+                   ]
+      let colors = [
+                      "rgba(255, 0, 100, 0.5)",
+                      "rgba(255, 100, 0, 0.5)",
+                      "rgba(100, 0, 255, 0.5)",
+                      "rgba(200, 200, 0, 0.5)"
+                    ]
+      let histogram = [0,0,0,0]
+      let occurences = [0,0,0,0]
+      for(let i = 0; i < data.length; i++){
+        let item = data[i];
+        let barBuilder = ""
+        let highlightBuilder = ""
+        let accumulator = 0;
+        if(item["Subjects"])for(let c = 0;c<item["Subjects"].length;c++){
+          let cover = item["Subjects"][c];
+          let percentage = 100 * cover.width * cover.height || 0;
+          let computedHeight = Math.round(100/50*percentage);
+          let index = labels.indexOf(cover.subject)
+          if(percentage){
+            histogram[index]+=percentage;
+            occurences[index]++;
+          }
+          let color = colors[index]
+          barBuilder+=`<div class="bar highlight" style="background-color:${color};bottom:${accumulator}%;height:${computedHeight}%">${percentage?Math.round(percentage)+"<span style='font-size:8pt'>%</span>":""}</div>`
+
+          highlightBuilder+=`<div class="highlight" style="background-color:${color};left:${100*cover.left || 0}%;width:${100*cover.width || 0}%;top:${100*cover.top || 0}%;height:${100*cover.height || 0}%;"></div>`
+          
+          accumulator+=computedHeight
+        }
+        var date = new Date(item["Date Released"])
+        if (i==17){
+          stringBuilder += `<br>`
+        }
+        stringBuilder +=
+        `<div class="graphcol">
+          <div class="bargraph">
+          ${barBuilder}
+          </div>
+          <div class="container">
+            <img class="focus" src="Converted Images/${item["Filename"]}"/>
+            ${highlightBuilder}
+          </div>
+          <div class="subtitle">
+            ${date.getMonth()+1}/${date.getDate()}/${(""+date.getFullYear()).slice(2)}
+          </div>
+        </div>`
+      }
+      stringBuilder+=`<br>`
+      for(let c = 0;c<labels.length;c++){
+        stringBuilder+=`<div class="keyrow">
+          <div class="swatch" style="background-color:${colors[c]}"></div>
+          ${labels[c]} <span style="color:#bbb">(${Math.round(histogram[c])}% total coverage across ${occurences[c]} articles)</span>
+        </div>`
+      }
+      stringBuilder+=`<br style="line-height:100px">`
+      document.getElementById("root").innerHTML = stringBuilder;
+    </script>
+  </body>
+</html>
